@@ -1,0 +1,55 @@
+#set ($language="Swift")
+#set ($description="MySQL PersistenceManager: an Adapter to deal with persistence layer")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($filep="PersistenceManagerMySQL.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+import PerfectLib
+import MySQL
+
+class PersistenceManagerMySQL {
+	static let sharedInstance = PersistenceManagerMySQL()
+    var mysql = MySQL ()
+    #foreach( $entity in $entities)
+    var ${entity.getVariableName()}Repository :  ${entity.name}RepositoryMySQL! 
+	#end
+    init() {
+    	// Connect to Database.
+    	let datasource : GeneratronDataSource = Config.sharedInstance.datasources["mysql"]!
+    	
+    	do {
+    		
+ 			 
+        	 let connect = mysql.connect (datasource.host, user:datasource.user, password: datasource.password)
+        if (connect)
+        {
+            let selectedSchema = mysql.selectDatabase (datasource.schema)
+            if (selectedSchema)
+            {
+#foreach( $entity in $entities)
+			
+			//Variables for ${entity.name}
+			${entity.getVariableName()}Repository = ${entity.name}RepositoryMySQL(db:self.mysql);
+			try ${entity.getVariableName()}Repository.createTable()
+#end
+}
+}
+
+    	} catch (let e){
+        	print("Failure connecting to MYSQL DB")
+        	print(e)
+    	}
+    	
+    }
+    
+    func checkConnection() -> Bool {
+    	let sql = "SELECT 1"
+		let queryResult = db.query(sql)
+		if(!queryResult){
+			 return  mysql.connect (datasource.host, user:datasource.user, password: datasource.password)
+		}
+		return queryResult
+    }
+}

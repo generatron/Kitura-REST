@@ -1,0 +1,23 @@
+#set ($language="Swift")
+#set ($description="Router Configuration")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="Router.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+/**
+* RouterMiddleware can be used for intercepting requests and handling custom behavior
+* such as authentication and other routing
+*/
+class Router  {
+    static let sharedInstance = Router()
+#foreach($entity : $entities)
+    var ${entity.getVariableName()} : ${entity.name}Router!
+#end
+    init(){
+#foreach($entity : $entities)
+      ${entity.getVariableName()} = ${entity.name}Router()
+#end    	
+    }
+}

@@ -1,0 +1,9 @@
+#set ($language="Swift")
+#set ($description="${entity.name} Handlers for REST endpoints ")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="${entity.name}Router.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+#parse('/PerfectSwift/server/EntityHandlers.swift.parse')

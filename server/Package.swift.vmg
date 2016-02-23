@@ -1,0 +1,18 @@
+#set ($language="Swift")
+#set ($description="Info.plist")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($header="false")
+#set ($filep="Package.swift")
+#set ($filename="${outputDir}/${filep}")
+import PackageDescription
+
+let package = Package(
+    name: "${application.name}",
+
+    dependencies: [
+        .Package(url: "https://github.com/IBM-Swift/Kitura-router.git", majorVersion: 0),
+    ]
+
+)

@@ -1,0 +1,206 @@
+#set ($language="Swift")
+#set ($description="Persistence code for for ${entity.name}")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($filep="${entity.name}RepositoryMySQL.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+
+import MySQL
+class ${entity.name}RepositoryMySQL : RepositoryMySQL {
+func createTable() throws ->  Int {
+   let rs = try db.query("${sqlHelper.createTable(${entity},"MySQL",$application.explorer)}")
+   let errorCode = db.errorCode()
+        if errorCode > 0 {
+            throw RepositoryError.CreateTable(errorCode)
+      }
+      return 0;
+}
+func insert(entity: ${entity.name}) throws -> Int {
+       	let sql = "${sqlHelper.insertSQL(${entity},"MySQL")}"
+       	PersistenceManagerMySQL.sharedInstance.checkConnection();
+       	let statement = MySQLStmt(db)
+		defer {
+			statement.close()
+		}
+		let prepRes = statement.prepare(sql)
+		if(prepRes){
+#set($cont=1)
+#foreach($attribute in ${entity.attributes})
+#if(${attribute.name} != "id")
+
+#if(${attribute.domain} == "true")
+#if(${attribute.type} != "Transformable")
+if(entity.${attribute.name} != nil){
+			statement.bindParam(entity.${attribute.name}.id)
+}else{
+			statement.bindParam()
+}
+#else
+			//It's transformable, not supported at the moment
+   			//statement.bindParam(entity.${attribute.name}.id)
+#end
+#end
+#if($attribute.domain == false && $attribute.isCollection() == false)
+#if($attribute.isDate() == true)
+		if(entity.${attribute.name} != nil){
+			statement.bindParam(entity.${attribute.name}.SQLDateString)
+		}else{
+			statement.bindParam()
+		}
+#end
+#if($attribute.isDate() == false)
+		if(entity.${attribute.name} != nil){
+			statement.bindParam(entity.${attribute.name})
+		}else{
+			statement.bindParam()
+		}
+#end
+#end
+#set($cont=$cont+1)
+		
+#end
+#end
+
+			let execRes = statement.execute()
+			if(execRes){
+				entity.id = Int(statement.insertId()) ;
+				return entity.id
+			}else{
+				print("\(statement.errorCode()) \(statement.errorMessage()) - \(db.errorCode()) \(db.errorMessage())")
+				let errorCode = db.errorCode()
+				if errorCode > 0 {
+				    throw RepositoryError.Insert(errorCode)
+				}
+			}
+				
+			statement.close()
+	}        
+ 	return 0
+	}
+    
+	func update(entity: ${entity.name}) throws -> Int {
+        guard let id = entity.id else {
+            return 0
+        }
+        
+        let sql = "${sqlHelper.updateSQL(${entity},"MySQL")}"
+PersistenceManagerMySQL.sharedInstance.checkConnection();
+let statement = MySQLStmt(db)
+		defer {
+			statement.close()
+		}
+		let prepRes = statement.prepare(sql)
+		
+		if(prepRes){		
+#set($cont=1)
+#foreach($attribute in ${entity.attributes})
+#if(${attribute.name} != "id")
+
+#if(${attribute.domain} == "true")
+#if(${attribute.type} != "Transformable")
+if(entity.${attribute.name} != nil){
+			statement.bindParam(entity.${attribute.name}.id)
+}else{
+			statement.bindParam()
+}
+#else
+			//It's transformable, not supported at the moment
+   			//statement.bindParam(entity.${attribute.name}.id)
+#end
+#end
+#if($attribute.domain == false && $attribute.isCollection() == false)
+#if($attribute.isDate() == true)
+		if(entity.${attribute.name} != nil){
+			statement.bindParam(entity.${attribute.name}.SQLDateString)
+		}else{
+			statement.bindParam()
+		}
+#end
+#if($attribute.isDate() == false)
+		if(entity.${attribute.name} != nil){
+			statement.bindParam(entity.${attribute.name})
+		}else{
+			statement.bindParam()
+		}
+#end
+#end
+#set($cont=$cont+1)
+		
+#end
+#end
+			statement.bindParam(entity.id)
+			let execRes = statement.execute()
+			if(!execRes){
+				print("\(statement.errorCode()) \(statement.errorMessage()) - \(db.errorCode()) \(db.errorMessage())")
+				let errorCode = db.errorCode()
+				if errorCode > 0 {
+				    throw RepositoryError.Update(errorCode)
+				}
+			}
+	
+			statement.close()
+		}
+        
+		return 0
+    }
+    
+	func delete(id: Int) throws -> Int {
+	PersistenceManagerMySQL.sharedInstance.checkConnection();
+	    let sql = "DELETE FROM ${entity.getVariableName()} WHERE id = \(id)"
+	    let queryResult = db.query(sql)
+	    return id;
+	}
+    
+    func retrieve(id: Int) throws -> ${entity.name}? {
+        let sql = "${sqlHelper.retrieveSQL(${entity},"MySQL")} WHERE id = \(id)"
+        PersistenceManagerMySQL.sharedInstance.checkConnection();
+		let queryResult = db.query(sql)
+		 if(queryResult){
+        let results = db.storeResults()!
+  		let ${entity.getVariableName()} = ${entity.name}()
+        while let row = results.next() {
+			#parse('/PerfectSwift/server/loadDataFromRecord.swift.parse')
+            print(row)
+        }
+        results.close()
+	    return ${entity.getVariableName()};
+	    }else{
+				print(" \(db.errorCode()) \(db.errorMessage())")
+				let errorCode = db.errorCode()
+				if errorCode > 0 {
+				    throw RepositoryError.Retrieve(errorCode)
+				}
+			}
+			return nil;
+    }
+    
+    func list() throws -> [${entity.name}]  {
+        let sql = "${sqlHelper.retrieveSQL(${entity},"MySQL")} "
+        PersistenceManagerMySQL.sharedInstance.checkConnection();
+        var entities = [${entity.name}]()
+         let queryResult = db.query(sql)
+        if(queryResult){
+
+		let results = db.storeResults()!
+  
+        while let row = results.next() {
+        	let ${entity.getVariableName()} = ${entity.name}()
+			#parse('/PerfectSwift/server/loadDataFromRecord.swift.parse')
+			entities.append(${entity.getVariableName()})
+            print(row)
+        }
+        results.close()
+        return entities
+			}else{
+				print(" \(db.errorCode()) \(db.errorMessage())")
+				let errorCode = db.errorCode()
+				if errorCode > 0 {
+				    throw RepositoryError.List(errorCode)
+				}
+				return [];
+			}
+			
+    }
+}

@@ -1,0 +1,72 @@
+
+class ${entity.name}Router  {
+ 
+init(){
+ Router.sharedInstance.get("/api/${entity.getVariableName()}"){ request, response, next in
+    do{
+	  	let ${entity.getVariableName()}s : [${entity.name}]  = try PersistenceManagerMySQL.sharedInstance.${entity.getVariableName()}Repository.list()
+	  	print (NSJSONSerialization.isValidJSONObject (${entity.getVariableName()}s ))
+  	
+        let json = try ${entity.name}.encodeList(${entity.getVariableName()}s );
+        try response.outputJson(json)
+  	}catch{
+  	  response.setStatus (500, message: "Could not list ${entity.name} data")
+  	}
+    //response.appendBodyString("Index handler: You accessed path \(request.requestURI())")
+    next()
+  }
+
+
+  Router.sharedInstance.post("/api/${entity.getVariableName()}"){ request, response, next in
+     let ${entity.getVariableName()} = ${entity.name}() 
+     do {
+    	try ${entity.getVariableName()}.decode(request.postBodyString);
+    	let result = try PersistenceManagerMySQL.sharedInstance.${entity.getVariableName()}Repository.insert(${entity.getVariableName()})
+    	let json = try ${entity.getVariableName()}.encode()
+    	try response.outputJson(json)
+    }catch{
+        response.appendBodyString("Error accessing data:  \(error)")
+    }
+    next()
+ }
+
+
+ Router.sharedInstance.get("/api/${entity.getVariableName()}/:id"){ request, response, next in
+   let id = Int(request.params["id"]!)
+    do{
+        let ${entity.getVariableName()} : ${entity.name}  = try PersistenceManagerMySQL.sharedInstance.${entity.getVariableName()}Repository.retrieve(id!)!
+        let json = try ${entity.getVariableName()}.encode()
+        try response.outputJson(json)
+    }catch{
+        response.setStatus (500, message: "Could not retrieve ${entity.name} \(id) data")
+    }
+    next()
+ }
+
+ Router.sharedInstance.put("/api/${entity.getVariableName()}"){ request, response, next in
+    do {
+     	let ${entity.getVariableName()} = ${entity.name}() 
+    	try ${entity.getVariableName()}.decode(request.postBodyString);
+    	let result = try PersistenceManagerMySQL.sharedInstance.${entity.getVariableName()}Repository.update(${entity.getVariableName()})
+    	let json = try ${entity.getVariableName()}.encode()
+    	try response.outputJson(json)
+    }catch{
+        response.appendBodyString("Error accessing data:  \(error)")
+    }
+    next()
+ }
+
+
+ Router.sharedInstance.delete("/api/${entity.getVariableName()}/:id"){ request, response, next in
+    let id = Int(request.params["id"]!)
+    do{
+        let result = try PersistenceManagerMySQL.sharedInstance.${entity.getVariableName()}Repository.delete(id!)
+        //let json = try ${entity.getVariableName()}.encode()
+        try response.outputJson("{\"id\":\(id),\"message\":\"deleted\"}")
+    }catch{
+        response.setStatus (500, message: "Could not delete ${entity.name} \(id) data")
+    }
+    next()
+ }
+
+}

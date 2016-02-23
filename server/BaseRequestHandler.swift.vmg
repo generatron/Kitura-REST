@@ -1,0 +1,12 @@
+#set ($language="Swift")
+#set ($description="BaseRequestHandler")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="BaseRequestHandler.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+class BaseRequestHandler {
+    
+
+}

@@ -1,0 +1,31 @@
+#set ($language="Swift")
+#set ($description="Configuration")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="Config.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+
+class Config {
+	static let sharedInstance = Config()
+	let serverPort = 9000
+    
+   var datasources = Dictionary<String,GeneratronDataSource>();
+    
+   init() {
+#foreach($datasource in $datasources)
+    var ${datasource.type} = GeneratronDataSource();
+    ${datasource.type}.name = "${datasource.name}"
+    ${datasource.type}.host = "${datasource.host}"
+    ${datasource.type}.user = "${datasource.user}"
+    ${datasource.type}.password = "${datasource.password}"
+    ${datasource.type}.schema = "${datasource.schema}"
+    datasources["${datasource.type}"] = ${datasource.type};
+    
+#end
+    }
+    
+  
+    
+}

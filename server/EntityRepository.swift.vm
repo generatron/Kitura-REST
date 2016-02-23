@@ -1,0 +1,192 @@
+#set ($language="Swift")
+#set ($description="Persistence code for for ${entity.name}")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($filep="${entity.name}SQLiteRepository.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+
+import MySQL
+class ${entity.name}SQLiteRepository : RepositorySQLite {
+func createTable() throws ->  Int {
+   let rs = try db.query("${sqlHelper.createTable(${entity},"SQLite",$application.explorer)}")
+   let errorCode = db.errorCode()
+        if errorCode > 0 {
+            throw RepositoryError.CreateTable(errorCode)
+      }
+      return 0;
+}
+func insert(entity: ${entity.name}) throws -> Int {
+       	let sql = "${sqlHelper.insertSQL(${entity},"MySQL")}"
+       	
+       	let statement = MySQLStmt(db)
+		defer {
+			statement.close()
+		}
+		let prepRes = statement.prepare(sql)
+		if(prepRes){
+#set($cont=1)
+#foreach($attribute in ${entity.attributes})
+#if(${attribute.domain} == "true")
+	statement.bindParam(entity.${attribute.name}_id)
+#end
+#if($attribute.domain == false && $attribute.isCollection() == false)
+#if($attribute.isDate() == true)
+	statement.bindParam(entity.${attribute.name}.SQLiteDateString)
+#end
+#if($attribute.isDate() == false)
+	statement.bindParam(entity.${attribute.name})
+#end
+#end
+#set($cont=$cont+1)
+#end
+
+
+let execRes = statement.execute()
+if(!execRes){
+	print("\(statement.errorCode()) \(statement.errorMessage()) - \(db.errorCode()) \(db.errorMessage())")
+	let errorCode = db.errorCode()
+	if errorCode > 0 {
+	    throw RepositoryError.Insert(errorCode)
+	}
+}
+	
+statement.close()
+}        
+ return 0
+}
+    
+    func update(entity: ${entity.name}) throws -> Int {
+        guard let id = entity.id else {
+            return 0
+        }
+        
+        let sql = "${sqlHelper.updateSQL(${entity},"MySQL")}"
+
+let statement = MySQLStmt(db)
+		defer {
+			statement.close()
+		}
+		let prepRes = statement.prepare(sql)
+		
+		if(prepRes){		
+#set($cont=1)
+#foreach($attribute in ${entity.attributes})
+#if(${attribute.domain} == "true")
+	statement.bindParam(entity.${attribute.name}_id)
+#end
+#if($attribute.domain == false && $attribute.isCollection() == false)
+#if($attribute.isDate() == true)
+	statement.bindParam(entity.${attribute.name}.SQLiteDateString)
+#end
+#if($attribute.isDate() == false)
+	statement.bindParam(entity.${attribute.name})
+#end
+#end
+#set($cont=$cont+1)
+#end
+
+let execRes = statement.execute()
+if(!execRes){
+	print("\(statement.errorCode()) \(statement.errorMessage()) - \(db.errorCode()) \(db.errorMessage())")
+	let errorCode = db.errorCode()
+	if errorCode > 0 {
+	    throw RepositoryError.Update(errorCode)
+	}
+}
+	
+statement.close()
+		}
+        
+		return 0
+    }
+    
+	func delete(entity: ${entity.name}) throws -> Int {
+	    guard let id = entity.id else {
+	        return 0
+	    }
+	    
+	    let sql = "DELETE FROM ${entity.getVariableName()} WHERE id = ?"
+	    let statement = MySQLStmt(db)
+		defer {
+			statement.close()
+		}
+		let prepRes = statement.prepare(sql)
+		
+		if(prepRes){
+			//HARDCODED might not exist, assuming it does, need to retrieve PK
+			statement.bindParam(entity.id)
+			
+			let execRes = statement.execute()
+	        if(!execRes){
+				print("\(statement.errorCode()) \(statement.errorMessage()) - \(db.errorCode()) \(db.errorMessage())")
+				let errorCode = db.errorCode()
+				if errorCode > 0 {
+	    			throw RepositoryError.Delete(errorCode)
+				}
+				statement.close()
+			}
+				
+		}
+		return 0
+	}
+    
+    func retrieve(id: Int) throws -> ${entity.name}? {
+        let sql = "${sqlHelper.retrieveSQL(${entity},"MySQL")}"
+       	let statement = MySQLStmt(db)
+		defer {
+			statement.close()
+		}
+		let prepRes = statement.prepare(sql)
+		
+		if(prepRes){
+			//HARDCODED might not exist, assuming it does, need to retrieve PK
+			statement.bindParam(entity.id)
+			
+			let execRes = statement.execute()
+            if(!execRes){
+            	let result = statement.results()
+            	
+            	let ok = results.forEachRow {
+				e in
+				print(e.flatMap({ (a:Any?) -> Any? in
+					return a!
+				}))
+				}
+			
+				print("\(statement.errorCode()) \(statement.errorMessage()) - \(db.errorCode()) \(db.errorMessage())")
+				let errorCode = db.errorCode()
+				if errorCode > 0 {
+	    			throw RepositoryError.Delete(errorCode)
+				}
+				statement.close()
+			}
+				
+		}
+	    return entity;
+    }
+    
+    func list() throws -> [${entity.name}] {
+        let sql = "SELECT * FROM ${entity.getVariableName()} "
+        var entities = [${entity.name}]()
+        var columns = [Any]()
+        try db.forEachRow(sql, doBindings: { (stmt:SQLiteStmt) -> () in
+            //nothing to see here
+        }) { (stmt:SQLiteStmt, r:Int) -> () in
+                let entity =  ${entity.name}()
+#set($cont=0)
+#foreach($attribute in ${entity.attributes})
+#if($attribute.domain == true)
+		entity.${attribute.name} = stmt.column${sqlHelper.bindType("MySQL",${attribute})}($cont)
+#end
+#if(!$attribute.domain && !$attribute.isCollection())
+		entity.${attribute.name} = stmt.column${sqlHelper.bindType("MySQL",${attribute})}($cont)
+#end
+#set($cont=$cont+1)
+#end
+        	    entities.append(entity)
+        }
+        return entities
+    }
+}

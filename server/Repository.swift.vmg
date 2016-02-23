@@ -1,0 +1,27 @@
+#set ($language="Swift")
+#set ($description="Base Repository class")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($filep="RepositorySQLite.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+enum RepositoryError : ErrorType {
+    case Select(Int)
+    case Insert(Int)
+    case Update(Int)
+    case Delete(Int)
+    case CreateTable(Int)
+}
+
+class RepositorySQLite {
+    let db: SQLite!
+    
+    init(db: SQLite) {
+        self.db = db
+    }
+    
+    func lastInsertId() -> Int {
+        return db.lastInsertRowID()
+    }
+}

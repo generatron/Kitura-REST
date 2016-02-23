@@ -1,0 +1,71 @@
+#set ($language="Swift")
+#set ($description="Class that holds the data for ${entity.name}")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="${entity.name}.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+
+import PerfectLib
+
+class ${entity.name}  {
+#foreach($attribute in $entity.attributes)
+##// ${attribute.type}  $application.explorer ${dth.convertModelTypeToLanguageType("Swift",$attribute,$application.explorer)}
+#if($attribute.isCollection())
+    var ${attribute.name} : [${attribute.generic}]!
+#else
+    var ${attribute.name} : ${dth.convertModelTypeToLanguageType("Swift",${attribute},$application.explorer)}!
+#end
+#end
+    
+    
+    func toDictionary() -> Dictionary<String, JSONValue> {
+#set($cont=0)
+		var dict =  Dictionary<String, JSONValue>()
+#foreach($attribute in $entity.attributes)
+		if(${attribute.name} != nil){
+			dict["${attribute.name}"] = ${attribute.name}
+		}
+#end
+		return dict        
+	}
+    
+    
+    func decode(jsonString : String) throws -> Void {
+        let decoder = JSONDecoder()
+        let payload = try decoder.decode(jsonString) as! JSONDictionaryType
+#foreach($attribute in $entity.attributes)
+##// ${attribute.type}  $application.explorer ${dth.convertModelTypeToLanguageType("Swift",$attribute,$application.explorer)}
+		if(payload["${attribute.name}"] != nil){
+#if($attribute.isCollection())
+     		${attribute.name} = payload["${attribute.name}"]  as! [${attribute.generic}]
+#else
+     		${attribute.name} =  payload["${attribute.name}"] as! ${dth.convertModelTypeToLanguageType("Swift",${attribute},$application.explorer)}
+#end
+		}
+#end
+    }
+    
+	func encode() throws -> String {
+        let encoder = JSONEncoder()
+        let payload = try encoder.encode(toDictionary())
+        return payload
+    }
+    
+    static func encodeList(elements : Array<${entity.name}>) throws -> String {
+        var payload : Array<JSONValue> = [];
+        do {
+        elements.forEach { ${entity.getVariableName()} -> () in
+                payload.append(${entity.getVariableName()}.toDictionary());
+           
+        }
+        let encoder = JSONEncoder()
+        let json = try encoder.encode(payload)
+        return json
+        }catch{
+            print(error)
+        }
+        return ""
+    }
+}

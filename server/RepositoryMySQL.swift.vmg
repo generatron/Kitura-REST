@@ -1,0 +1,29 @@
+#set ($language="Swift")
+#set ($description="Base Repository class")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($filep="RepositoryMySQL.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+
+import PerfectLib
+import MySQL
+
+enum RepositoryError : ErrorType {
+    case Select(UInt32)
+    case Insert(UInt32)
+    case Update(UInt32)
+    case Delete(UInt32)
+    case CreateTable(UInt32)
+    case List(UInt32)
+    case Retrieve(UInt32)
+}
+
+class RepositoryMySQL {
+    let db: MySQL!
+    
+    init(db: MySQL) {
+        self.db = db
+    }
+    
+}

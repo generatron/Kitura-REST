@@ -1,0 +1,16 @@
+#set ($language="Swift")
+#set ($description="Server Configuration")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="GeneratronDataSource.swift")
+#set ($filename="${outputDir}/Sources/${filep}")
+class GeneratronDataSource {
+    var name : String!
+    var type : String!
+    var host : String!
+    var schema : String!
+    var user : String!
+    var password : String!
+    var port : Int!
+}
