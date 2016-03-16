@@ -1,0 +1,16 @@
+#set ($language="XML")
+#set ($description="Swift Server")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($header="false")
+#set ($filep="contents.xcworkspacedata")
+##parse("common/utils.parse")
+#set ($filename="${outputDir}/${project.name}.xcodeproj/project.xcworkspace/${filep}")
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace version = "1.0">
+   <FileRef
+      location = "self:${project.name}.xcodeproj">
+   </FileRef>
+</Workspace>
+dff

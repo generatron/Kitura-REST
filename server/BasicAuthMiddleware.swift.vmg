@@ -4,8 +4,12 @@
 #set ($overwrite="true")
 #set ($enabled="true")
 #set ($filep="BasicAuthMiddleware.swift")
-#set ($filename="${outputDir}/Sources/${filep}")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Middleware/${filep}")
+import KituraRouter
+import KituraNet
 
+import LoggerAPI
+import SwiftyJSON
 /**
 * RouterMiddleware can be used for intercepting requests and handling custom behavior
 * such as authentication and other routing

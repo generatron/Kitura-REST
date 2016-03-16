@@ -1,0 +1,99 @@
+#set ($language="Swift")
+#set ($description="Persistence code for for ${entity.name}")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="${entity.name}RepositoryMemory.swift")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Persistence/${filep}")
+
+import KituraSys
+import LoggerAPI
+import SwiftyJSON
+
+import Foundation
+
+
+class ${entity.name}RepositoryMemory : ${entity.name}Repository {
+    
+    ///
+    /// Ensure in order writes to the collection
+    ///
+    let writingQueue = Queue(type: .SERIAL, label: "Writing Queue")
+
+    ///
+    /// Incrementing variable used for new index values
+    ///
+    var idCounter: Int = 0
+
+
+  	///
+    /// Internal storage of ${entity.name} as a Dictionary
+    ///
+    private var _collection = [String: ${entity.name}]()
+   
+    var count: Int {
+        return _collection.keys.count
+    }
+
+    func clear() {
+        writingQueue.queueSync() {
+            self._collection.removeAll()
+        }
+
+    }
+    
+    
+	func createStorage() throws ->  Int {
+      return 0;
+	}
+	
+	func insert(entity: ${entity.name}) throws -> Int {
+ 		writingQueue.queueSync() {
+            self.idCounter+=1
+            var original: String
+ 			original = String(self.idCounter)
+			entity.id = self.idCounter
+			print(entity) 
+            self._collection[original] = entity
+
+        }
+     
+ 		return self.idCounter
+	}
+    
+    func update(entity: ${entity.name}) throws -> Int {
+    	let oldValue = self._collection[String(entity.id)]
+        
+        if oldValue != nil {
+            
+            // use nil coalescing operator
+            
+            let newValue = ${entity.name}()
+#foreach($attribute in $entity.attributes)
+			if(entity.${attribute.name} != nil){
+				newValue.${attribute.name} = entity.${attribute.name}
+			}
+#end
+            _collection.updateValue(newValue, forKey: String(entity.id))
+            return 0
+            
+        } else {
+            Log.warning("Could not find item in database with ID: \(entity.id)")
+        }
+
+		return 0
+    }
+    
+	func delete(id: Int) throws -> Int {
+		self._collection.removeValueForKey(String(id))
+		return 0
+	}
+    
+    func retrieve(id: Int) throws -> ${entity.name}? {
+	    return self._collection[String(id) ] 
+    }
+    
+    func list() throws -> [${entity.name}] {
+       return [${entity.name}](_collection.values)
+    }
+}

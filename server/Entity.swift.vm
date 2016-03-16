@@ -4,12 +4,13 @@
 #set ($overwrite="true")
 #set ($enabled="true")
 #set ($filep="${entity.name}.swift")
-#set ($filename="${outputDir}/Sources/${filep}")
-
-
-import PerfectLib
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Models/${filep}")
+//Data class for ${entity.name}
+import SwiftyJSON
+import Foundation
 
 class ${entity.name}  {
+
 #foreach($attribute in $entity.attributes)
 ##// ${attribute.type}  $application.explorer ${dth.convertModelTypeToLanguageType("Swift",$attribute,$application.explorer)}
 #if($attribute.isCollection())
@@ -20,9 +21,9 @@ class ${entity.name}  {
 #end
     
     
-    func toDictionary() -> Dictionary<String, JSONValue> {
+  func toDictionary() -> Dictionary<String, AnyObject> {
 #set($cont=0)
-		var dict =  Dictionary<String, JSONValue>()
+		var dict =  Dictionary<String, AnyObject>()
 #foreach($attribute in $entity.attributes)
 		if(${attribute.name} != nil){
 			dict["${attribute.name}"] = ${attribute.name}
@@ -30,42 +31,61 @@ class ${entity.name}  {
 #end
 		return dict        
 	}
-    
-    
-    func decode(jsonString : String) throws -> Void {
-        let decoder = JSONDecoder()
-        let payload = try decoder.decode(jsonString) as! JSONDictionaryType
+	
+	func serialize() -> JSON {
+		let json =  JSON(toDictionary())
+		return json        
+	}
+	
+    func deserialize(json : JSON) throws -> Void {
+      
 #foreach($attribute in $entity.attributes)
 ##// ${attribute.type}  $application.explorer ${dth.convertModelTypeToLanguageType("Swift",$attribute,$application.explorer)}
-		if(payload["${attribute.name}"] != nil){
+		if(json["${attribute.name}"] != nil){
 #if($attribute.isCollection())
-     		${attribute.name} = payload["${attribute.name}"]  as! [${attribute.generic}]
+     		${attribute.name} = json["${attribute.name}"].${dth.convertModelTypeToLanguageType("SwiftyJSON",$attribute,$application.explorer)}
 #else
-     		${attribute.name} =  payload["${attribute.name}"] as! ${dth.convertModelTypeToLanguageType("Swift",${attribute},$application.explorer)}
+#if($attribute.domain)
+//${attribute.name} =  json["${attribute.name}"].deserialize()
+#else
+     		${attribute.name} =  json["${attribute.name}"].${dth.convertModelTypeToLanguageType("SwiftyJSON",$attribute,$application.explorer)}
+#end
 #end
 		}
 #end
+		
+    }   
+    func deserialize(jsonString : String) throws -> Void {
+        if let dataFromString = jsonString.dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: false) {
+    		let json = JSON(data: dataFromString)
+#foreach($attribute in $entity.attributes)
+##// ${attribute.type}  $application.explorer ${dth.convertModelTypeToLanguageType("Swift",$attribute,$application.explorer)}
+		if(json["${attribute.name}"] != nil){
+#if($attribute.isCollection())
+     		${attribute.name} = json["${attribute.name}"].${dth.convertModelTypeToLanguageType("SwiftyJSON",$attribute,$application.explorer)}
+#else
+#if($attribute.domain)
+//${attribute.name} =  json["${attribute.name}"].deserialize()
+#else
+     		${attribute.name} =  json["${attribute.name}"].${dth.convertModelTypeToLanguageType("SwiftyJSON",$attribute,$application.explorer)}
+#end
+#end
+		}
+#end
+		}
     }
     
-	func encode() throws -> String {
-        let encoder = JSONEncoder()
-        let payload = try encoder.encode(toDictionary())
-        return payload
+	func encode() throws -> JSON! {
+        let json = serialize()
+        return json 
     }
     
-    static func encodeList(elements : Array<${entity.name}>) throws -> String {
-        var payload : Array<JSONValue> = [];
-        do {
-        elements.forEach { ${entity.getVariableName()} -> () in
-                payload.append(${entity.getVariableName()}.toDictionary());
-           
-        }
-        let encoder = JSONEncoder()
-        let json = try encoder.encode(payload)
-        return json
-        }catch{
-            print(error)
-        }
-        return ""
+    static func encodeList(elements : Array<${entity.name}>) throws -> JSON {
+          var list = [JSON]();
+          for element in elements {
+              let json = element.serialize()
+              list.append(json)
+          }
+          return JSON(list)
     }
 }

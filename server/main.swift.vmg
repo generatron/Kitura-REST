@@ -5,8 +5,7 @@
 #set ($enabled="true")
 #set ($filep="main.swift")
 #parse("common/utils.parse")
-#set ($filename="${outputDir}/Sources/${filep}")
-
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/${filep}")
 import KituraSys
 import KituraNet
 import KituraRouter
@@ -24,56 +23,14 @@ ${h}if os(OSX)
     import Mustache
 ${h}endif
 
+let persistenceManager = PersistenceManagerMemory();
 
-// Example using templating of strings
-${h}if os(OSX) // Mustache implented for OSX only yet
-Router.sharedInstance.get("/") { _, response, next in
-    defer {
-        next()
-    }
-    do {
+${application.name}Router.sharedInstance.setupRoutes();
+ 
+${h}if os(OSX) // Mustache implemented for OSX only yet
 
-        let template = try Template(string: "Hello {{name}}\n" +
-            "Your beard trimmer will arrive on {{format(date)}}.\n" +
-            "{{#late}}" +
-            "Well, on {{format(realDate)}} because of a Martian attack." +
-            "{{/late}}")
-        // Let template format dates with `{{format(...)}}`
-        let dateFormatter = NSDateFormatter()
-        dateFormatter.dateStyle = .MediumStyle
-        template.registerInBaseContext("format", Box(dateFormatter))
-
-        // The rendered data
-        let data = [
-            "name": "Arthur",
-            "date": NSDate(),
-            "realDate": NSDate().dateByAddingTimeInterval(60*60*24*3),
-            "late": true
-        ]
-        var rendering = ""
-        
-        do {
-            rendering = try template.render(Box(data))
-        }
-        catch {
-            Log.error("Failed to render mustache template")
-        }
-
-        do {
-            try response.status(HttpStatusCode.OK).end(rendering)
-        }
-        catch {
-            Log.error("Failed to send response")
-        }
-    }
-    catch {
-        Log.error("Failed to create mustache template")
-    }
-}
 ${h}endif
 
-
-// Listen on port 9000
-let server = HttpServer.listen(Config.sharedInstance.port,delegate: Router.sharedInstance)
-
+let server = HttpServer.listen(Config.sharedInstance.serverPort,delegate: ${application.name}Router.sharedInstance)
+print("Server up and running on http://localhost:\(Config.sharedInstance.serverPort)/api/")
 Server.run()

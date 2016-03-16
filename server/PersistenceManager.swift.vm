@@ -1,0 +1,16 @@
+#set ($language="Swift")
+#set ($description="Persistence code for for ${entity.name}")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="PersistenceManager.swift")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Persistence/${filep}")
+
+protocol PersistenceManager  {
+	func connect() throws
+	func disconnect() throws
+	
+	#foreach( $entity in $entities)
+    var ${entity.getVariableName()}Repository :  ${entity.name}Repository {get set} 
+	#end
+}

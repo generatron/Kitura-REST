@@ -1,0 +1,155 @@
+#set ($language="Swift")
+#set ($description="Persistence code for for ${entity.name}")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($filep="${entity.name}RepositorySQLite.swift")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Persistence/${filep}")
+
+import SQLite
+
+
+class ${entity.name}SQLiteRepository : ${entity.name}Repository,RepositorySQLite {
+func createStorage() throws ->  Int {
+	do {
+		let sqlite = self.db
+		defer {
+			sqlite.close()
+		}
+		try sqlite.execute("${sqlHelper.createTable(${entity},"SQLite",$application.explorer)}")
+	} catch let e {
+		print("Exception creating SQLite Table for ${entity.name} \(e)")
+	}
+   
+}
+func insert(entity: ${entity.name}) throws -> Int {
+       	let sql = "${sqlHelper.insertSQL(${entity},"SQLite")}"
+        try db.execute(sql) { (stmt:SQLiteStmt) -> () in
+#set($cont=1)
+#foreach($attribute in ${entity.attributes})
+#if(${attribute.domain} == "true")
+		try stmt.bind(":${attribute.name}_id", entity.${attribute.name}_id)
+#end
+#if($attribute.domain == false && $attribute.isCollection() == false)
+		try stmt.bind(":${attribute.name}", entity.${attribute.name})
+#end
+#set($cont=$cont+1)
+#end
+        }
+        let errCode = db.errCode()
+        if errCode > 0 {
+            throw RepositoryError.Insert(errCode)
+        }
+        return db.changes()
+    }
+    
+    func update(entity: ${entity.name}) throws -> Int {
+        guard let id = entity.id else {
+            return 0
+        }
+        
+        let sql = "${sqlHelper.updateSQL(${entity},"SQLite")}"
+        try db.execute(sql) { (stmt:SQLiteStmt) -> () in
+#set($cont=1)
+#foreach($attribute in ${entity.attributes})
+#if($attribute.domain == true)
+		try stmt.bind(":${attribute.name}_id", entity.${attribute.name}_id)
+#end
+#if(!$attribute.domain && !$attribute.isCollection())
+		try stmt.bind(":${attribute.name}", entity.${attribute.name})
+#end
+#set($cont=$cont+1)
+#end
+        }
+        
+        let errCode = db.errCode()
+        if errCode > 0 {
+            throw RepositoryError.Update(errCode)
+        }
+        
+        return db.changes()
+    }
+    
+    func delete(entity: ${entity.name}) throws -> Int {
+        guard let id = entity.id else {
+            return 0
+        }
+        
+        let sql = "DELETE FROM ${entity.getVariableName()} WHERE id = :id"
+        try db.execute(sql) { (stmt:SQLiteStmt) -> () in
+            try stmt.bind(":id", id)
+        }
+        
+        let errCode = db.errCode()
+        if errCode > 0 {
+            throw RepositoryError.Delete(errCode)
+        }
+        
+        return db.changes()
+    }
+    
+    func retrieve(id: Int) throws -> ${entity.name}? {
+        let sql = "SELECT * FROM ${entity.getVariableName()} WHERE id = :id"
+        var columns = [Any]()
+        try db.forEachRow(sql, doBindings: { (stmt:SQLiteStmt) -> () in
+            try stmt.bind(":id", id)
+        }) { (stmt:SQLiteStmt, r:Int) -> () in
+#set($cont=0)
+#foreach($attribute in ${entity.attributes})
+#if($attribute.domain == true)
+			columns.append(stmt.columnInt(${cont}))
+#end
+#if(!$attribute.domain && !$attribute.isCollection())
+			columns.append(stmt.column${sqlHelper.bindType("SQLite",${attribute})}($cont))
+#end
+#set($cont=$cont+1)
+#end
+        }
+        
+        let errCode = db.errCode()
+        if errCode > 0 {
+            throw RepositoryError.Select(errCode)
+        }
+        
+        guard columns.count > 0 else {
+            return nil
+        }
+        
+        return ${entity.name}(
+#set($cont=0)
+#foreach($attribute in ${entity.attributes})
+#if($attribute.domain == true)
+#if($cont>0),#end${attribute.name}: columns[${cont}] as? Integer
+#end
+#if(!$attribute.domain && !$attribute.isCollection())
+#if($cont>0),#end${attribute.name}: columns[${cont}] as? ${dth.convertModelTypeToLanguageType($language,$attribute,$application.explorer)}
+#end
+#set($cont=$cont+1)
+#end
+        )
+    }
+    
+    func list() throws -> [${entity.name}] {
+        let sql = "SELECT * FROM ${entity.getVariableName()} "
+        var entities = [${entity.name}]()
+        try db.forEachRow(sql, doBindings: { (stmt:SQLiteStmt) -> () in
+            //nothing to see here
+        }) { (stmt:SQLiteStmt, r:Int) -> () in
+        	entities.append(
+        		${entity.name}(
+#set($cont=0)
+#foreach($attribute in ${entity.attributes})
+#if($attribute.domain == true)
+#if($cont>0),#end${attribute.name}: columns[${cont}] as? Integer
+#end
+#if(!$attribute.domain && !$attribute.isCollection())
+#if($cont>0),#end${attribute.name}: columns[${cont}] as? ${dth.convertModelTypeToLanguageType($language,$attribute,$application.explorer)}
+#end
+#set($cont=$cont+1)
+#end
+        		)
+        	)
+        }
+        return entities
+    }
+}

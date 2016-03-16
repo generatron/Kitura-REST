@@ -1,0 +1,28 @@
+#set ($language="Swift")
+#set ($description="Repository SQLite class")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($filep="RepositorySQLite.swift")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Persistence/${filep}")
+
+enum RepositoryError : ErrorType {
+    case Select(Int)
+    case Insert(Int)
+    case Update(Int)
+    case Delete(Int)
+    case CreateTable(Int)
+}
+
+class RepositorySQLite : Repository {
+    let db: SQLite!
+    
+    override init(db: SQLite) {
+    	super.init()
+        self.db = db
+    }
+    
+    func lastInsertId() -> Int {
+        return db.lastInsertRowID()
+    }
+}

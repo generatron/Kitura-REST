@@ -4,7 +4,7 @@
 #set ($overwrite="true")
 #set ($enabled="true")
 #set ($filep="Config.swift")
-#set ($filename="${outputDir}/Sources/${filep}")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/${filep}")
 
 
 class Config {

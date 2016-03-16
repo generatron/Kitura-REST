@@ -3,21 +3,67 @@
 #set ($author="Evol Johnson")
 #set ($overwrite="true")
 #set ($enabled="true")
-#set ($filep="Router.swift")
-#set ($filename="${outputDir}/Sources/${filep}")
-
+#set ($filep="${application.name}Router.swift")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Controllers/${filep}")
+import KituraRouter
+import KituraNet
+import LoggerAPI
+import SwiftyJSON
+import Foundation
+import Mustache
 /**
 * RouterMiddleware can be used for intercepting requests and handling custom behavior
 * such as authentication and other routing
 */
-class Router  {
-    static let sharedInstance = Router()
-#foreach($entity : $entities)
-    var ${entity.getVariableName()} : ${entity.name}Router!
+class ${application.name}Router  : Router{
+    static let sharedInstance = ${application.name}Router()
+    var persistenceManager : PersistenceManager!;
+#foreach($entity in $entities)
+    var ${entity.getVariableName()}Controller : ${entity.name}Controller!
 #end
-    init(){
-#foreach($entity : $entities)
-      ${entity.getVariableName()} = ${entity.name}Router()
-#end    	
+    
+    func setupRoutes() { 
+	    self.use("/*", middleware: BodyParser())
+	    self.use("/*", middleware: AllRemoteOriginMiddleware())
+		self.use("/static/*", middleware: StaticFileServer())
+		//setTemplateEngine(MustacheTemplateEngine())
+
+		self.get("/") { _, response, next in
+		    defer {
+		        next()
+		    }
+		    do {
+		        var context: [String: Any] = [
+		            "name": "Arthur",
+		            "date": NSDate(),
+		            "realDate": NSDate().dateByAddingTimeInterval(60*60*24*3),
+		            "late": true
+		        ]
+		
+		        // Let template format dates with `{{format(...)}}`
+		        let dateFormatter = NSDateFormatter()
+		        dateFormatter.dateStyle = .MediumStyle
+		        context["format"] = dateFormatter
+		
+		        try response.render("index", context: context).end()
+		    } catch {
+		        Log.error("Failed to render template \(error)")
+		    }
+		}
+
+		// Handles any errors that get set
+		self.error { request, response, next in
+		  response.setHeader("Content-Type", value: "text/plain; charset=utf-8")
+		    do {
+		        try response.send("Caught the error: \(response.error!.localizedDescription)").end()
+		    }
+		    catch {}
+		  next()
+		}
+		persistenceManager = PersistenceManagerMemory();
+
+#foreach($entity in $entities)
+        ${entity.getVariableName()}Controller = ${entity.name}Controller(persistenceManager : persistenceManager)
+#end   
     }
 }

@@ -1,0 +1,9 @@
+#set ($language="Swift")
+#set ($description="${entity.name} Handlers for REST endpoints ")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="${entity.name}Controller.swift")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Controllers/${filep}")
+
+#parse('/Kitura/server/EntityRouter.swift.parse')

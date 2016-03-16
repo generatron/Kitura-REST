@@ -1,0 +1,91 @@
+import KituraRouter
+import KituraNet
+import KituraSys
+
+import HeliumLogger
+import LoggerAPI
+
+import Foundation
+
+class ${entity.name}Controller  {
+	var pm : PersistenceManager!
+	 
+	init(persistenceManager : PersistenceManager){
+	self.pm = persistenceManager;
+	 ${application.name}Router.sharedInstance.get("/api/${entity.getVariableName()}"){ request, response, next in
+	    do{
+	    	print("Adding route: /api/${entity.getVariableName()} ")
+	        let ${entity.getVariableName()}s : [${entity.name}]  = try self.pm.${entity.getVariableName()}Repository.list()
+	        let json = try ${entity.name}.encodeList(${entity.getVariableName()}s);
+	        response.status(HttpStatusCode.OK).sendJson(json)
+	  	}catch{
+	  	    try! response.status(HttpStatusCode.INTERNAL_SERVER_ERROR).end();
+	  	}
+	    next()
+	  }
+	
+	
+	  ${application.name}Router.sharedInstance.post("/api/${entity.getVariableName()}"){ request, response, next in
+	     let ${entity.getVariableName()} = ${entity.name}() 
+	     do {
+	     	if let body = request.body {
+            	if let json = body.asJson() {
+	                try ${entity.getVariableName()}.deserialize(json);
+		    		try self.pm.${entity.getVariableName()}Repository.insert(${entity.getVariableName()})
+		    		let json = try ${entity.getVariableName()}.encode()
+		    		response.status(HttpStatusCode.OK).sendJson(json)
+            	}
+	        } else {
+	            response.status(HttpStatusCode.BAD_REQUEST)
+	        }
+	    }catch{
+	        try! response.status(HttpStatusCode.INTERNAL_SERVER_ERROR).end();
+	    }
+	    next()
+	 }
+	
+	 ${application.name}Router.sharedInstance.get("/api/${entity.getVariableName()}/:id"){ request, response, next in
+	   let id = Int(request.params["id"]!)
+	    do{
+	        let ${entity.getVariableName()} : ${entity.name}  = try self.pm.${entity.getVariableName()}Repository.retrieve(id!)!
+	        let json = try ${entity.getVariableName()}.encode()
+	        response.status(HttpStatusCode.OK).sendJson(json)
+	    }catch{
+	        try! response.status(HttpStatusCode.INTERNAL_SERVER_ERROR).end();
+	    }
+	    next()
+	 }
+	
+	 ${application.name}Router.sharedInstance.put("/api/${entity.getVariableName()}/:id"){ request, response, next in
+	    do {
+	     	if let body = request.body {
+            	if let json = body.asJson() {
+            		let id = Int(request.params["id"]!)
+            		let ${entity.getVariableName()} = ${entity.name}()
+	                try ${entity.getVariableName()}.deserialize(json);
+		    		try self.pm.${entity.getVariableName()}Repository.update(${entity.getVariableName()})
+		    		let json = try ${entity.getVariableName()}.encode()
+		    		response.status(HttpStatusCode.OK).sendJson(json)
+            	}
+	        } else {
+	            response.status(HttpStatusCode.BAD_REQUEST)
+	        }
+	    }catch{
+	        try! response.status(HttpStatusCode.INTERNAL_SERVER_ERROR).end();
+	    }
+	    next()
+	 }
+
+	 ${application.name}Router.sharedInstance.delete("/api/${entity.getVariableName()}/:id"){ request, response, next in
+	    let id = Int(request.params["id"]!)
+	    do{
+	        try self.pm.${entity.getVariableName()}Repository.delete(id!)
+	        //response.status(HttpStatusCode.OK).sendJson(json)
+	        try response.status(HttpStatusCode.OK).end()
+	    }catch{
+	        try! response.status(HttpStatusCode.INTERNAL_SERVER_ERROR).end()
+	    }
+	    next()
+	 }
+  }
+}

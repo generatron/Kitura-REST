@@ -1,0 +1,24 @@
+#set ($language="Swift")
+#set ($description="Swift Server")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="AllRemoteOriginMiddleware.swift")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Middleware/${filep}")
+import KituraRouter
+import KituraNet
+
+import LoggerAPI
+import SwiftyJSON
+
+/// Custom middleware that allows Cross Origin HTTP requests	
+class AllRemoteOriginMiddleware: RouterMiddleware {
+    func handle(request: RouterRequest, response: RouterResponse, next: () -> Void) {
+        Log.info("Added cross origin header")
+        response.status(200);
+        response.setHeader("Access-Control-Allow-Origin", value: "*")
+        response.setHeader("Access-Control-Allow-Headers", value: "Origin, X-Requested-With, Content-Type, Accept")
+        response.setHeader("Access-Control-Allow-Methods", value: "DELETE,POST,PUT,GET,OPTIONS,HEAD")
+        next()
+    }
+}

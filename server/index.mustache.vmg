@@ -1,0 +1,22 @@
+#set ($language="Swift")
+#set ($description="Swift Server")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="index.mustache")
+#parse("common/utils.parse")
+#set ($filename="${outputDir}/${project.name}/Views/${filep}")
+<html>
+<body>
+<h1>${application.name}</h1>
+engineered with<br>
+<img src="../static/img/generatron.png" height="100"/>
+<div class="footer">
+<div class="container">
+<div>Copyright NGEOSONE LLC ${year}</div>
+</div>
+</div>
+</center>
+</body>
+</html>
+    

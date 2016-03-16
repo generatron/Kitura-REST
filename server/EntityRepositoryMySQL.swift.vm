@@ -4,12 +4,14 @@
 #set ($overwrite="true")
 #set ($enabled="false")
 #set ($filep="${entity.name}RepositoryMySQL.swift")
-#set ($filename="${outputDir}/Sources/${filep}")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Persistence/${filep}")
+
+import PerfectMySQL
 
 
-import MySQL
-class ${entity.name}RepositoryMySQL : RepositoryMySQL {
-func createTable() throws ->  Int {
+class ${entity.name}RepositoryMySQL : ${entity.name}Repository,RepositoryMySQL {
+
+func createStorage() throws ->  Int {
    let rs = try db.query("${sqlHelper.createTable(${entity},"MySQL",$application.explorer)}")
    let errorCode = db.errorCode()
         if errorCode > 0 {

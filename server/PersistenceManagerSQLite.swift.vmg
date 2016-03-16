@@ -1,0 +1,51 @@
+#set ($language="Swift")
+#set ($description="SQLite PersistenceManager: an Adapter to deal with persistence layer")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="false")
+#set ($filep="PersistenceManagerSQLite.swift")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Persistence/${filep}")
+
+import SQLite
+
+class PersistenceManagerSQLite : PersistenceManager {
+	static let sharedInstance = PersistenceManagerSQLite()
+	let DB_PATH = PerfectServer.staticPerfectServer.homeDir() + serverSQLiteDBs + "${application.name}"
+	
+	
+    private var db: SQLite {
+		return try! SQLite(DB_PATH)
+	}
+    
+    #foreach( $entity in $entities)
+    var ${entity.getVariableName()}Repository :  ${entity.name}RepositorySQLite! 
+	#end
+    
+    init() {
+    	
+    }
+    
+    func connect() {
+    	
+    	do {
+        let sqlite = self.db
+		defer {
+			sqlite.close()
+		}
+        
+#foreach( $entity in $entities)
+			//Variables for ${entity.name}
+			${entity.getVariableName()}Repository = ${entity.name}RepositorySQLite(db:self.db);
+			try ${entity.getVariableName()}Repository.createStorage()
+#end
+
+
+    	} catch (let e){
+        	print("Exeption creating SQLite DB \(e)")
+			File(DB_PATH).delete()
+    	}
+    	
+    }
+    
+    
+}

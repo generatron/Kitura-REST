@@ -2,10 +2,10 @@
 #set ($description="Info.plist")
 #set ($author="Evol Johnson")
 #set ($overwrite="true")
-#set ($enabled="false")
+#set ($enabled="true")
 #set ($header="false")
 #set ($filep="Makefile")
-#set ($filename="${outputDir}/${filep}")
+#set ($filename="${outputDir}/${project.name}/${filep}")
 # Copyright IBM Corporation 2016
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

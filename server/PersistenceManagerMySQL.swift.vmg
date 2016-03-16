@@ -4,24 +4,24 @@
 #set ($overwrite="true")
 #set ($enabled="false")
 #set ($filep="PersistenceManagerMySQL.swift")
-#set ($filename="${outputDir}/Sources/${filep}")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Persistence/${filep}")
 
-import PerfectLib
-import MySQL
+import PerfectMySQL
 
-class PersistenceManagerMySQL {
+class PersistenceManagerMySQL : PersistenceManager {
 	static let sharedInstance = PersistenceManagerMySQL()
     var mysql = MySQL ()
+    
     #foreach( $entity in $entities)
     var ${entity.getVariableName()}Repository :  ${entity.name}RepositoryMySQL! 
 	#end
     init() {
+    }
+    
+    func connect() {
     	// Connect to Database.
     	let datasource : GeneratronDataSource = Config.sharedInstance.datasources["mysql"]!
-    	
     	do {
-    		
- 			 
         	 let connect = mysql.connect (datasource.host, user:datasource.user, password: datasource.password)
         if (connect)
         {
@@ -32,7 +32,7 @@ class PersistenceManagerMySQL {
 			
 			//Variables for ${entity.name}
 			${entity.getVariableName()}Repository = ${entity.name}RepositoryMySQL(db:self.mysql);
-			try ${entity.getVariableName()}Repository.createTable()
+			try ${entity.getVariableName()}Repository.createStorage()
 #end
 }
 }
@@ -48,7 +48,7 @@ class PersistenceManagerMySQL {
     	let sql = "SELECT 1"
 		let queryResult = db.query(sql)
 		if(!queryResult){
-			 return  mysql.connect (datasource.host, user:datasource.user, password: datasource.password)
+			connect()
 		}
 		return queryResult
     }

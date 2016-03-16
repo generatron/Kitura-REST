@@ -1,0 +1,34 @@
+#set ($language="Swift")
+#set ($description="MySQL PersistenceManager: an Adapter to deal with persistence layer")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($filep="PersistenceManagerMemory.swift")
+#set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Persistence/${filep}")
+
+class PersistenceManagerMemory : PersistenceManager {
+	static let sharedInstance = PersistenceManagerMemory()
+    
+    #foreach( $entity in $entities)
+    var ${entity.getVariableName()}Repository :  ${entity.name}Repository = ${entity.name}RepositoryMemory()
+	#end
+    
+    
+ func connect() throws {
+    	do {
+#foreach( $entity in $entities)
+			
+			//Variables for ${entity.name}
+			//${entity.getVariableName()}Repository = ${entity.name}RepositoryMemory();
+			try ${entity.getVariableName()}Repository.createStorage()
+#end
+    	} catch (let e){
+        	print("Failure connecting to MemoryDB")
+        	print(e)
+    	}
+    	
+    }
+    
+    func disconnect() throws {
+    }
+}

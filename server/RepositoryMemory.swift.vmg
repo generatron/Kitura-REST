@@ -1,12 +1,11 @@
 #set ($language="Swift")
-#set ($description="Repository MySQL class")
+#set ($description="Repository Memory class")
 #set ($author="Evol Johnson")
 #set ($overwrite="true")
-#set ($enabled="false")
-#set ($filep="RepositoryMySQL.swift")
+#set ($enabled="true")
+#set ($filep="RepositoryMemory.swift")
 #set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Persistence/${filep}")
 
-import PerfectMySQL
 
 enum RepositoryError : ErrorType {
     case Select(UInt32)
@@ -18,12 +17,9 @@ enum RepositoryError : ErrorType {
     case Retrieve(UInt32)
 }
 
-class RepositoryMySQL : Repository {
-    let db: MySQL!
-    
-    override init(db: MySQL) {
+class RepositoryMemory : Repository{
+    override init() {
     	super.init()
-        self.db = db
     }
     
 }
