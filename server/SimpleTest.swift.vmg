@@ -1,0 +1,12 @@
+#set ($language="Swift")
+#set ($description="Router Configuration")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($price=0)
+#set ($enabled="true")
+#set ($filep="SimpleTest.swift")
+#set ($filename="${outputDir}/${project.name}/Tests/${project.name}/${filep}")
+
+class SimpleTest  {
+ 
+}

@@ -1,2 +1,0 @@
-# Kitura
-Generatron Kitura templates

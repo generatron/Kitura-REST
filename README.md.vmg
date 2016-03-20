@@ -1,0 +1,35 @@
+#set ($language="Text")
+#set ($description="README file")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($enabled="true")
+#set ($header="false")
+#set ($filep="README.md")
+#set ($filename="${outputDir}/${project.name}/${filep}")
+# Kitura ${project.name} Backend
+
+1. Build ${project.name} application
+
+  1. Mac OS X: 
+	
+	`swift build -Xcc -fblocks -Xswiftc -I/usr/local/include -Xlinker -L/usr/local/lib`
+	
+  2. Linux:
+  
+    `swift build -Xcc -fblocks`
+	
+2. Run the ${project.name} application:
+
+	`./.build/debug/${project.name}`
+	
+3. Open up your browser, and view: 
+
+   [http://localhost:9000](http://localhost:9000)
+
+
+## Tests
+
+  To run unit tests, run:
+  
+  `swift test`
+

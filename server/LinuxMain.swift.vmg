@@ -1,0 +1,12 @@
+#set ($language="Swift")
+#set ($description="Router Configuration")
+#set ($author="Evol Johnson")
+#set ($overwrite="true")
+#set ($price=0)
+#set ($enabled="true")
+#set ($filep="LinuxMain.swift")
+#set ($filename="${outputDir}/${project.name}/Tests/${filep}")
+
+class LinuxMain  {
+ 
+}
