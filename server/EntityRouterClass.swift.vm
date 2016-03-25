@@ -6,4 +6,4 @@
 #set ($filep="${entity.name}Controller.swift")
 #set ($filename="${outputDir}/${project.name}/Sources/${project.name}/Controllers/${filep}")
 
-#parse('/Kitura/server/EntityRouter.swift.parse')
+#parse('/Kitura-REST/server/EntityRouter.swift.parse')
